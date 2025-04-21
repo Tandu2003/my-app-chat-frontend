@@ -1,15 +1,17 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
-import api from '../utils/axios' // Thêm dòng này
+import { apiFetchMessages } from '../api/messageApi'
 
 // Async thunk: lấy messages của 1 chat
 export const fetchMessages = createAsyncThunk(
   'message/fetchMessages',
   async (chatId, { rejectWithValue }) => {
     try {
-      const res = await api.get(`/api/messages/chat/${chatId}`)
-      return res.data.messages // trả về mảng messages
+      const res = await apiFetchMessages(chatId)
+      return res.messages // trả về mảng messages từ backend
     } catch (err) {
-      return rejectWithValue(err.message)
+      return rejectWithValue(
+        err?.response?.data?.message || err.message || 'Lỗi lấy tin nhắn',
+      )
     }
   },
 )
@@ -24,6 +26,11 @@ const messageSlice = createSlice({
   reducers: {
     addMessage(state, action) {
       state.messages.push(action.payload)
+    },
+    clearMessages(state) {
+      state.messages = []
+      state.error = null
+      state.loading = false
     },
   },
   extraReducers: (builder) => {
@@ -43,5 +50,5 @@ const messageSlice = createSlice({
   },
 })
 
-export const { addMessage } = messageSlice.actions
+export const { addMessage, clearMessages } = messageSlice.actions
 export default messageSlice.reducer

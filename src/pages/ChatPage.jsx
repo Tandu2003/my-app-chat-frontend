@@ -7,6 +7,7 @@ import ChatListPanel from '../components/ChatListPanel'
 import ChatMessagesPanel from '../components/ChatMessagesPanel'
 import { apiSearchUsers } from '../api/userApi'
 import { apiCreateChat } from '../api/chatApi'
+import { fetchMessages } from '../slices/messageSlice'
 
 const ChatPage = () => {
   const user = useSelector((state) => state.user.user)
@@ -14,12 +15,18 @@ const ChatPage = () => {
   const chatLoading = useSelector((state) => state.chat.loading)
   const location = useLocation()
   const dispatch = useDispatch()
-  const [selectedChatId, setSelectedChatId] = useState(null)
+  const [selectedChatId, setSelectedChatId] = useState(() => {
+    // Lấy từ localStorage khi khởi tạo
+    return localStorage.getItem('selectedChatId') || null
+  })
   const [showMessagesMobile, setShowMessagesMobile] = useState(false)
   const [search, setSearch] = useState('')
   const [searchResult, setSearchResult] = useState(null)
   const [searchLoading, setSearchLoading] = useState(false)
   const [searchError, setSearchError] = useState(null)
+  const messages = useSelector((state) => state.message.messages)
+  const messagesLoading = useSelector((state) => state.message.loading)
+  const messagesError = useSelector((state) => state.message.error)
 
   useEffect(() => {
     if (user) {
@@ -27,8 +34,26 @@ const ChatPage = () => {
     }
   }, [user, dispatch])
 
+  // Khi danh sách chats thay đổi, kiểm tra selectedChatId có còn tồn tại không
+  useEffect(() => {
+    if (chats.length > 0 && selectedChatId) {
+      const exists = chats.some((c) => c._id === selectedChatId)
+      if (!exists) {
+        setSelectedChatId(null)
+        localStorage.removeItem('selectedChatId')
+      }
+    }
+  }, [chats, selectedChatId])
+
+  useEffect(() => {
+    if (selectedChatId) {
+      dispatch(fetchMessages(selectedChatId))
+    }
+  }, [selectedChatId, dispatch])
+
   const handleSelectChat = (chatId) => {
     setSelectedChatId(chatId)
+    localStorage.setItem('selectedChatId', chatId)
     if (window.innerWidth < 768) setShowMessagesMobile(true)
   }
 
@@ -95,6 +120,13 @@ const ChatPage = () => {
     return <Navigate to="/login" state={{ from: location }} replace />
   }
 
+  // Lấy chat hiện tại và người còn lại (otherUser)
+  const currentChat = chats.find((c) => c._id === selectedChatId)
+  const otherUser =
+    currentChat && user
+      ? currentChat.participants.find((u) => u._id !== user._id)
+      : null
+
   return (
     <div className="flex h-screen">
       <Sidebar />
@@ -118,6 +150,11 @@ const ChatPage = () => {
           selectedChatId={selectedChatId}
           showMessagesMobile={showMessagesMobile}
           onBack={handleBackToChats}
+          messages={messages}
+          loading={messagesLoading}
+          error={messagesError}
+          user={user}
+          otherUser={otherUser}
         />
       </div>
     </div>

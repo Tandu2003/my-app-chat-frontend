@@ -6,8 +6,8 @@ export const fetchCurrentUser = createAsyncThunk(
   'user/fetchCurrentUser',
   async (_, { rejectWithValue }) => {
     try {
-      const user = await apiFetchCurrentUser()
-      return user
+      const res = await apiFetchCurrentUser()
+      return res.user
     } catch (err) {
       return rejectWithValue(err.message)
     }
@@ -37,7 +37,7 @@ const userSlice = createSlice({
       })
       .addCase(fetchCurrentUser.fulfilled, (state, action) => {
         state.loading = false
-        state.user = action.payload
+        state.user = action.payload // action.payload là object user
       })
       .addCase(fetchCurrentUser.rejected, (state, action) => {
         state.loading = false

@@ -25,7 +25,6 @@ This is the frontend for **My Chat App**, a real-time chat application that supp
 ### Prerequisites
 
 - Node.js (v16+ recommended)
-- Backend service running: [my-chat-app-backend](../my-chat-app-backend)
 
 ### Installation
 

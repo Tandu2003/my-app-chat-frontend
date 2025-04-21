@@ -1,4 +1,4 @@
-import { Alert, message as antdMessage, Button, Form, Input } from 'antd'
+import { Alert, Button, Form, Input } from 'antd'
 import React, { useState } from 'react'
 import { useSelector } from 'react-redux'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
@@ -21,16 +21,13 @@ const RegisterPage = () => {
     setLoading(true)
     try {
       const res = await apiRegister(values)
-      antdMessage.success(
-        res.message ||
-          'Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.',
-      )
       navigate('/login', {
         replace: true,
         state: {
           message:
             res.message ||
             'Đăng ký thành công! Vui lòng kiểm tra email để xác thực tài khoản.',
+          type: 'success',
         },
       })
     } catch (err) {
@@ -43,7 +40,6 @@ const RegisterPage = () => {
         { name: 'email', errors: [] },
         { name: 'password', errors: [] },
       ])
-      antdMessage.error(msg)
     } finally {
       setLoading(false)
     }

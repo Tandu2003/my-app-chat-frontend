@@ -1,5 +1,5 @@
 import { Alert, message as antdMessage, Button, Form, Input } from 'antd'
-import React, { useEffect, useState } from 'react'
+import React, { useEffect, useRef, useState } from 'react'
 import { useDispatch, useSelector } from 'react-redux'
 import { Navigate, useLocation, useNavigate } from 'react-router-dom'
 import { apiLogin } from '../api/authApi'
@@ -12,32 +12,29 @@ const LoginPage = () => {
   const navigate = useNavigate()
   const [form] = Form.useForm()
   const [loading, setLoading] = useState(false)
-  const [error, setError] = useState(null)
-  const [message, setMessage] = useState(location.state?.message) // lưu message vào state
+  const [error, setError] = useState(null) // lưu type vào state
 
   const [messageApi, contextHolder] = antdMessage.useMessage()
 
+  const hasShownMessage = useRef(false)
+
   useEffect(() => {
-    if (message) {
-      // Hiển thị message là error nếu có từ khóa lỗi, ngược lại là success
+    if (
+      location.state?.message &&
+      location.state?.type &&
+      !hasShownMessage.current
+    ) {
+      hasShownMessage.current = true // tránh hiển thị nhiều lần
       messageApi.open({
-        type:
-          message.toLowerCase().includes('lỗi') ||
-          message.toLowerCase().includes('thất bại')
-            ? 'error'
-            : 'success',
-        content: message,
+        type: location.state.type,
+        content: location.state.message,
         duration: 5,
       })
-      setMessage(null)
-      // Xóa message khỏi history state để không lặp lại khi quay lại trang này
-      if (window.history.replaceState) {
-        const { pathname, search } = window.location
-        window.history.replaceState({}, '', pathname + search)
-      }
+
+      // Optional: Xóa state sau khi hiển thị (nếu bạn muốn)
+      window.history.replaceState({}, document.title, window.location.pathname)
     }
-    // eslint-disable-next-line
-  }, [message])
+  }, [location.state])
 
   if (user) {
     return <Navigate to="/" state={{ from: location }} replace />
@@ -54,6 +51,7 @@ const LoginPage = () => {
         replace: true,
         state: {
           message: res.message,
+          type: 'success',
         },
       })
     } catch (err) {

@@ -1,20 +1,16 @@
-import React, { useEffect, useRef } from 'react'
+import React, { useEffect } from 'react'
 import { useSearchParams, useNavigate } from 'react-router-dom'
 import { apiVerifyEmail } from '../api/authApi'
 
 const VerifyEmailPage = () => {
   const [searchParams] = useSearchParams()
   const navigate = useNavigate()
-  const didVerifyRef = useRef(false) // Thêm biến ref
 
   useEffect(() => {
-    if (didVerifyRef.current) return // Đã xác thực rồi thì không làm lại
-    didVerifyRef.current = true
-
     const token = searchParams.get('token')
     if (!token) {
       navigate('/login', {
-        state: { message: 'Thiếu token xác thực.' },
+        state: { message: 'Thiếu token xác thực.', type: 'error' },
         replace: true,
       })
       return
@@ -22,7 +18,11 @@ const VerifyEmailPage = () => {
     apiVerifyEmail(token)
       .then((res) => {
         navigate('/login', {
-          state: { message: res.message || 'Xác thực email thành công.' },
+          state: {
+            message: res.message || 'Xác thực email thành công.',
+            type: 'success',
+          },
+
           replace: true,
         })
       })
@@ -32,6 +32,7 @@ const VerifyEmailPage = () => {
             message:
               err.response?.data?.message ||
               'Xác thực email thất bại. Vui lòng thử lại hoặc liên hệ hỗ trợ.',
+            type: 'error',
           },
           replace: true,
         })

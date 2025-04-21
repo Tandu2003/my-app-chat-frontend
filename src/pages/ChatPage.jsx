@@ -5,8 +5,8 @@ import Sidebar from '../components/Sidebar'
 import { fetchChats } from '../slices/chatSlice'
 import ChatListPanel from '../components/ChatListPanel'
 import ChatMessagesPanel from '../components/ChatMessagesPanel'
-import { Input, Spin, Alert } from 'antd'
 import { apiSearchUsers } from '../api/userApi'
+import { apiCreateChat } from '../api/chatApi'
 
 const ChatPage = () => {
   const user = useSelector((state) => state.user.user)
@@ -42,8 +42,17 @@ const ChatPage = () => {
     if (!value) return
     setSearchLoading(true)
     try {
-      const res = await apiSearchUsers({ email: value })
-      setSearchResult(res.user)
+      // Kiểm tra nếu value là email
+      const isEmail = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(value)
+      const params = isEmail ? { email: value } : { name: value }
+      const res = await apiSearchUsers(params)
+      if (isEmail) {
+        setSearchResult(res.user)
+      } else {
+        setSearchResult(null)
+        // Có thể xử lý res.users nếu muốn hiển thị danh sách bạn bè theo tên
+        // Ví dụ: setSearchResult(res.users)
+      }
     } catch (err) {
       setSearchResult(null)
       setSearchError(
@@ -69,16 +78,10 @@ const ChatPage = () => {
       if (window.innerWidth < 768) setShowMessagesMobile(true)
     } else {
       try {
-        const res = await fetch('/api/chats', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          credentials: 'include',
-          body: JSON.stringify({ participantId: userObj._id }),
-        })
-        const data = await res.json()
-        if (!res.ok) throw new Error(data.message)
+        // Sử dụng apiCreateChat đã import ở trên
+        const res = await apiCreateChat(userObj._id)
         dispatch(fetchChats())
-        setSelectedChatId(data.chat._id)
+        setSelectedChatId(res.chat._id)
         setSearch('')
         setSearchResult(null)
         if (window.innerWidth < 768) setShowMessagesMobile(true)

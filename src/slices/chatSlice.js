@@ -1,14 +1,13 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import { apiFetchChats } from '../api/chatApi' // Thêm dòng này
 
 // Async thunk: lấy danh sách chat
 export const fetchChats = createAsyncThunk(
   'chat/fetchChats',
   async (_, { rejectWithValue }) => {
     try {
-      const res = await fetch('/api/chats', { credentials: 'include' })
-      const result = await res.json()
-      if (!res.ok) throw new Error(result.message)
-      return result
+      const res = await apiFetchChats() // Sử dụng apiFetchChats thay vì fetch
+      return res.chats // trả về mảng chats
     } catch (err) {
       return rejectWithValue(err.message)
     }

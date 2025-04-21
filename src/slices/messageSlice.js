@@ -1,16 +1,13 @@
 import { createSlice, createAsyncThunk } from '@reduxjs/toolkit'
+import api from '../utils/axios' // Thêm dòng này
 
 // Async thunk: lấy messages của 1 chat
 export const fetchMessages = createAsyncThunk(
   'message/fetchMessages',
   async (chatId, { rejectWithValue }) => {
     try {
-      const res = await fetch(`/api/messages/chat/${chatId}`, {
-        credentials: 'include',
-      })
-      const result = await res.json()
-      if (!res.ok) throw new Error(result.message)
-      return result
+      const res = await api.get(`/api/messages/chat/${chatId}`)
+      return res.data.messages // trả về mảng messages
     } catch (err) {
       return rejectWithValue(err.message)
     }
